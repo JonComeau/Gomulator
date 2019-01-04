@@ -195,12 +195,12 @@ func Emulate8080Op(state *State8080) {
 
 // Set carry
 func stc(state *State8080) {
-
+	state.cc.cy = 0x01
 }
 
 // Complement Carry
 func cmc(state *State8080) {
-
+	state.cc.cy = state.cc.cy ^ 0x01
 }
 
 //endregion
@@ -208,8 +208,10 @@ func cmc(state *State8080) {
 //region Single Register Instructions
 
 // Increment Register or Memory
-func inr(state *State8080) {
+func inr(state *State8080, val uint8) uint8 {
+	result :=
 
+	state.pc++
 }
 
 // Decrement Register or Memory
@@ -392,16 +394,127 @@ func jc(state *State8080) {}
 func jnc(state *State8080) {}
 
 // Jump If Zero
+func jz(state *State8080) {}
 
 // Jump If Not Zero
+func jnz(state *State8080) {}
 
 // Jump If Minus
+func jm(state *State8080) {}
 
 // Jump If Positive
+func jp(state *State8080) {}
 
 // Jump if Parity Even
+func jpe(state *State8080) {}
 
 // Jump If Parity Odd
+func jpo(state *State8080) {}
+
+// endregion
+
+// region Call Subroutine Instructions
+
+// Call
+func call(state *State8080) {}
+
+// Call if Carry
+func cc(state *State8080) {}
+
+// Call If No Carry
+func cnc(state *State8080) {}
+
+// Call If Zero
+func cz(state *State8080) {}
+
+// Call If Not Zero
+func cnz(state *State8080) {}
+
+// Call If Minus
+func cm(state *State8080) {}
+
+// Call If Plus
+func cp(state *State8080) {}
+
+// Call If Parity Even
+func cpe(state *State8080) {}
+
+// Call If Parity Odd
+func cpo(state *State8080) {}
+// endregion
+
+// region Return From Subroutine Instructions
+
+// Return
+func ret(state *State8080) {}
+
+// Return If Carry
+func rn(state *State8080) {}
+
+// Return if No Carry
+func rnc(state *State8080) {}
+
+// Return If Zero
+func rz(state *State8080) {}
+
+// Return If Not Zero
+func rnz(state *State8080) {}
+
+// Return If Minus
+func rm(state *State8080) {}
+
+// Return If Plus
+func rp(state *State8080) {}
+
+// Return If Parity Even
+func rpe(state *State8080) {}
+
+// Return If Parity Odd
+func rpo(state *State8080) {}
+// endregion
+
+// RST Instruction
+func rst(state *State8080) {}
+
+// region Interrupt Flip-Flop Instructions
+
+// Enable Interrupts
+func ei(state *State8080) {}
+
+// Disable Interrupts
+func di(state *State8080) {}
+// endregion
+
+// region Input/Output Instructions
+
+// Input
+func in(state *State8080) {}
+
+// Output
+func out(state *State8080) {}
+// endregion
+
+// Halt Instruction
+func hlt(state *State8080) {}
+
+// region Pseudo-Instructions
+
+// Origin
+func org(state *State8080) {}
+
+// Equate
+func equ(state *State8080) {}
+
+// Set
+func set(state *State8080) {}
+
+// End of Assembly
+func end(state *State8080) {}
+
+// Conditional Assembly
+
+
+// Macro Definition
 
 // endregion
 

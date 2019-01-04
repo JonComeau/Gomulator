@@ -33,6 +33,14 @@ func (c *ConditionCodes) GetPad() uint8 {
 	return c.pad & 0x3
 }
 
+/*
+ * Register Pairs
+ * B   = B and C
+ * D   = D and E
+ * H   = H and L
+ * PSW = A and State of condition bits
+ */
+
 type State8080 struct {
 	a          uint8
 	b          uint8
