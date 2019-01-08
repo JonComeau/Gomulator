@@ -55,3 +55,36 @@ type State8080 struct {
 	cc         ConditionCodes
 	int_enable uint8
 }
+
+// TODO: Figure out how memory is handled
+func (state *State8080) wb(addr uint16, val uint8) {
+
+}
+
+func (state *State8080) rb(addr uint16) uint8 {
+	return 0
+}
+
+func (state *State8080) setBC(val uint16) {
+	state.b, state.c = uint8(val>>8), uint8(val&0xff)
+}
+
+func (state *State8080) getBC() uint16 {
+	return uint16(state.b<<8) | uint16(state.c)
+}
+
+func (state *State8080) setDE(val uint16) {
+	state.d, state.e = uint8(val>>8), uint8(val&0xff)
+}
+
+func (state *State8080) getDE() uint16 {
+	return uint16(state.d<<8) | uint16(state.e)
+}
+
+func (state *State8080) setHL(val uint16) {
+	state.h, state.l = uint8(val>>8), uint8(val&0xff)
+}
+
+func (state *State8080) getHL() uint16 {
+	return uint16(state.h<<8) | uint16(state.l)
+}
