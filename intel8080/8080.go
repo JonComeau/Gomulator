@@ -36,6 +36,7 @@ func rb(state *State8080, addr uint16) uint8 {
 
 func unimplementedInstruction(state *State8080) {
 	fmt.Print("Error: Unimplemented instruction\n")
+	fmt.Printf("Machine Code: %x", state.memory[state.pc])
 	os.Exit(1)
 }
 
@@ -54,51 +55,153 @@ func Emulate8080Op(state *State8080) {
 		state.pc += 2
 		break
 	case 0x11: // LXI  D,D16
+		state.d = state.memory[state.pc+1]
+		state.e = state.memory[state.pc+2]
+		state.pc += 2
+		break
 	case 0x21: // LXI  H,D16
+		state.h = state.memory[state.pc+1]
+		state.l = state.memory[state.pc+2]
+		state.pc += 2
+		break
 	case 0x31: // LXI  SP,D16
+		state.sp = uint16(state.memory[state.pc+1]<<8) |
+			uint16(state.memory[state.pc+2]&0xff)
+		state.pc += 2
+		break
 
 	// STAX
 	case 0x02: // STAX B
+		wb(state, state.getBC(), state.a)
+		break
 	case 0x12: // STAX D
+		wb(state, state.getDE(), state.a)
+		break
+	case 0x32: // STA  word
+		wb(state,
+			uint16(state.memory[state.pc+1]<<8)|
+				uint16(state.memory[state.pc+2]&0xff),
+			state.a)
+		break
 
 	// INX
 	case 0x03: // INX  B
+		state.setBC(state.getBC() + 1)
+		break
 	case 0x13: // INX  D
+		state.setDE(state.getDE() + 1)
+		break
 	case 0x23: // INX  H
+		state.setHL(state.getHL() + 1)
+		break
 	case 0x33: // INX  SP
+		state.sp++
+		break
 
 	// INR
 	case 0x04: // INR  B
+		inr(state, &state.b)
+		break
 	case 0x0c: // INR  C
+		inr(state, &state.c)
+		break
 	case 0x14: // INR  D
+		inr(state, &state.d)
+		break
 	case 0x1c: // INR  E
+		inr(state, &state.e)
+		break
 	case 0x24: // INR  H
+		inr(state, &state.h)
+		break
 	case 0x2c: // INR  L
+		inr(state, &state.l)
+		break
 	case 0x34: // INR  M
+		bite := rb(state, state.getHL())
+		wb(state,
+			state.getHL(),
+			inr(state, &bite))
 	case 0x3c: // INR  A
+		inr(state, &state.a)
+		break
 
 	// DCR
 	case 0x05: // DCR  B
+		dcr(state, &state.b)
+		break
 	case 0x0d: // DCR  C
+		dcr(state, &state.c)
+		break
 	case 0x15: // DCR  D
+		dcr(state, &state.d)
+		break
 	case 0x1d: // DCR  E
+		dcr(state, &state.e)
+		break
 	case 0x25: // DCR  H
+		dcr(state, &state.h)
+		break
 	case 0x2d: // DCR  L
+		dcr(state, &state.l)
+		break
 	case 0x35: // DCR  M
+		bite := rb(state, state.getHL())
+		wb(state, state.getHL(), inr(state, &bite))
 	case 0x3d: // DCR  A
+		dcr(state, &state.a)
+		break
 
 	// MVI
 	case 0x06: // MVI  B,D8
+		state.b = state.memory[state.pc+1]
+		state.pc++
+		break
 	case 0x0e: // MVI  C,D8
+		state.c = state.memory[state.pc+1]
+		state.pc++
+		break
 	case 0x16: // MVI  D,D8
+		state.d = state.memory[state.pc+1]
+		state.pc++
+		break
 	case 0x1e: // MVI  E,D8
+		state.b = state.memory[state.pc+1]
+		state.pc++
+		break
 	case 0x26: // MVI  H,D8
+		state.h = state.memory[state.pc+1]
+		state.pc++
+		break
 	case 0x2e: // MVI  L,D8
+		state.l = state.memory[state.pc+1]
+		state.pc++
+		break
 	case 0x36: // MVI  M,D8
+		wb(state, state.getHL(), state.memory[state.pc+1])
+		state.pc++
+		break
 	case 0x3e: // MVI  A,D8
+		state.a = state.memory[state.pc+1]
+		state.pc++
+		break
 
-	// RLC
+	// Rotation Functions
 	case 0x07: // RLC
+		state.cc.cy = state.a >> 7
+		state.a = (state.a << 1) | (state.cc.GetCy() << 7)
+		break
+	case 0x0f: // RRC
+		x := state.a
+		state.a = ((x & 1) << 7) | (x >> 1)
+		state.cc.cy = b2i8(1 == (x & 1))
+		break
+	case 0x17: // RAL
+	case 0x1f: // RAR
+		x := state.a
+		state.a = (state.cc.cy << 7) | (x >> 1)
+		state.cc.cy = b2i8(1 == (x & 1))
+		break
 
 	// DAD
 	case 0x09: // DAD  B
@@ -116,23 +219,6 @@ func Emulate8080Op(state *State8080) {
 	case 0x2b: // DCX  H
 	case 0x3b: // DCX  SP
 
-	// RRC
-	case 0x0f: // RRC
-		x := state.a
-		state.a = ((x & 1) << 7) | (x >> 1)
-		state.cc.cy = b2i8(1 == (x & 1))
-		break
-
-	// RAL
-	case 0x17: // RAL
-
-	// RAR
-	case 0x1f: // RAR
-		x := state.a
-		state.a = (state.cc.cy << 7) | (x >> 1)
-		state.cc.cy = b2i8(1 == (x & 1))
-		break
-
 	// SHLD
 	case 0x22: // SHLD adr
 
@@ -146,9 +232,6 @@ func Emulate8080Op(state *State8080) {
 	case 0x2f: // CMA (not)
 		state.a = state.a ^ state.a
 		break
-
-	// STA
-	case 0x32: // STA  adr
 
 	// STC
 	case 0x37: // STC
@@ -323,8 +406,8 @@ func Emulate8080Op(state *State8080) {
 		state.sp += 2
 		break
 
-	// JNZ
-	case 0xc2: // JNZ  adr
+	// Jump Commands
+	case 0xc2: // JNZ
 		if state.cc.z == 0 {
 			state.pc = uint16(
 				(state.memory[state.pc+2] << 8) | state.memory[state.pc+1])
@@ -332,12 +415,17 @@ func Emulate8080Op(state *State8080) {
 			state.pc += 2
 		}
 		break
-
-	// JMP
-	case 0xc3: // JMP  adr
+	case 0xc3: // JMP
 		state.pc = uint16(
 			(state.memory[state.pc+2] << 8) | state.memory[state.pc+1])
 		break
+	case 0xca: // JZ
+	case 0xd2: // JNC
+	case 0xda: // JC
+	case 0xe2: // JPO
+	case 0xea: // JPE
+	case 0xf2: // JP
+	case 0xfa: // JM
 
 	// PUSH
 	case 0xc5: // PUSH B
@@ -404,8 +492,6 @@ func Emulate8080Op(state *State8080) {
 	case 0xf4: // CP
 	case 0xfc: // CM
 
-	//
-
 	case 0xd3: // OUT  D8
 	case 0xe6: // ANI
 		x := state.a & state.memory[state.pc+1]
@@ -425,6 +511,9 @@ func Emulate8080Op(state *State8080) {
 		state.cc.p = parity(x, 8)
 		state.cc.cy = b2i8(state.a > state.memory[state.pc+1])
 		state.pc++
+		break
+	default:
+		unimplementedInstruction(state)
 		break
 	}
 
@@ -456,7 +545,7 @@ func cmc(state *State8080) {
 
 // TODO: CMA
 // Increment Register or Memory
-func inr(state *State8080, val *uint8) {
+func inr(state *State8080, val *uint8) uint8 {
 	*val++
 
 	// Set Flags
@@ -464,6 +553,8 @@ func inr(state *State8080, val *uint8) {
 	state.cc.z = b2i8((*val) == 0)
 	state.cc.s = b2i8((*val & 0x80) != 0)
 	state.cc.p = parity(*val)
+
+	return *val
 }
 
 // Decrement Register or Memory
