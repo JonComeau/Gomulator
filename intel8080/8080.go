@@ -12,6 +12,13 @@ func b2i8(b bool) uint8 {
 	return 0
 }
 
+func b2i16(b bool) uint16 {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 func i2b8(i uint8) bool {
 	if i == 0 {
 		return false
@@ -197,6 +204,9 @@ func Emulate8080Op(state *State8080) {
 		state.cc.cy = b2i8(1 == (x & 1))
 		break
 	case 0x17: // RAL
+		cy := state.cc.GetCy()
+		state.cc.cy = state.a >> 7
+		state.a = (state.a << 1) | cy
 	case 0x1f: // RAR
 		x := state.a
 		state.a = (state.cc.cy << 7) | (x >> 1)
@@ -205,9 +215,17 @@ func Emulate8080Op(state *State8080) {
 
 	// DAD
 	case 0x09: // DAD  B
+		dad(state, state.getBC())
+		break
 	case 0x19: // DAD  D
+		dad(state, state.getDE())
+		break
 	case 0x29: // DAD  H
+		dad(state, state.getHL())
+		break
 	case 0x39: // DAD  SP
+		dad(state, state.sp)
+		break
 
 	// LDAX
 	case 0x0a: // LDAX B
@@ -664,14 +682,12 @@ func rar() {}
 
 // region Register Pair Instructions
 
-// Push Data Onto Stack
-func push(state *State8080) {}
-
-// Pop Data Off Stack
-func pop(state *State8080) {}
-
 // Double Add
-func dad(state *State8080) {}
+func dad(state *State8080, val uint16) {
+	var res uint32 = uint32(state.getHL()) + uint32(val)
+	state.setHL(uint16(res & 0xffff))
+	state.cc.cy = b2i8((res & 0x10000) != 0)
+}
 
 // Increment Reg Pair
 func inx(state *State8080) {}
