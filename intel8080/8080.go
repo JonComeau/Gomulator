@@ -229,7 +229,15 @@ func Emulate8080Op(state *State8080) {
 
 	// LDAX
 	case 0x0a: // LDAX B
+		state.a = rb(state, state.getBC())
+		break
 	case 0x1a: // LDAX D
+		state.a = rb(state, state.getDE())
+		break
+	case 0x3a: // LDA  adr
+		state.a = rb(state, uint16(state.memory[state.pc+1]<<8)|
+			uint16(state.memory[state.pc+2]&0xff))
+		break
 
 	// DCX
 	case 0x0b: // DCX  B
@@ -253,107 +261,274 @@ func Emulate8080Op(state *State8080) {
 
 	// STC
 	case 0x37: // STC
-
-	// LDA
-	case 0x3a: // LDA  adr
+		state.cc.cy = 1
+		break
 
 	// MOV
 	case 0x40: // MOV  B,B
+		state.b = state.b
+		break
 	case 0x41: // MOV  B,C
+		state.b = state.c
+		break
 	case 0x42: // MOV  B,D
+		state.b = state.d
+		break
 	case 0x43: // MOV  B,E
+		state.b = state.e
+		break
 	case 0x44: // MOV  B,H
+		state.b = state.h
+		break
 	case 0x45: // MOV  B,L
+		state.b = state.l
+		break
 	case 0x46: // MOV  B,M
+		state.b = rb(state, state.getHL())
+		break
 	case 0x47: // MOV  B,A
+		state.b = state.a
+		break
 	case 0x48: // MOV  C,B
+		state.c = state.b
+		break
 	case 0x49: // MOV  C,C
+		state.c = state.c
+		break
 	case 0x4a: // MOV  C,D
+		state.c = state.d
+		break
 	case 0x4b: // MOV  C,E
+		state.c = state.e
+		break
 	case 0x4c: // MOV  C,H
+		state.c = state.h
+		break
 	case 0x4d: // MOV  C,L
+		state.c = state.l
+		break
 	case 0x4e: // MOV  C,M
+		state.c = rb(state, state.getHL())
+		break
 	case 0x4f: // MOV  C,A
+		state.c = state.a
+		break
 	case 0x50: // MOV  D,B
+		state.d = state.b
+		break
 	case 0x51: // MOV  D,C
+		state.d = state.c
+		break
 	case 0x52: // MOV  D,D
+		state.d = state.d
+		break
 	case 0x53: // MOV  D,E
+		state.d = state.e
+		break
 	case 0x54: // MOV  D,H
+		state.d = state.h
+		break
 	case 0x55: // MOV  D,L
+		state.d = state.l
+		break
 	case 0x56: // MOV  D,M
+		state.d = rb(state, state.getHL())
+		break
 	case 0x57: // MOV  D,A
+		state.d = state.a
+		break
 	case 0x58: // MOV  E,B
+		state.e = state.b
+		break
 	case 0x59: // MOV  E,C
+		state.e = state.c
+		break
 	case 0x5a: // MOV  E,D
+		state.e = state.d
+		break
 	case 0x5b: // MOV  E,E
+		state.e = state.e
+		break
 	case 0x5c: // MOV  E,H
+		state.e = state.h
+		break
 	case 0x5d: // MOV  E,L
+		state.e = state.l
+		break
 	case 0x5e: // MOV  E,M
+		state.e = rb(state, state.getHL())
+		break
 	case 0x5f: // MOV  E,A
+		state.e = state.a
+		break
 	case 0x60: // MOV  H,B
+		state.h = state.b
+		break
 	case 0x61: // MOV  H,C
+		state.h = state.c
+		break
 	case 0x62: // MOV  H,D
+		state.h = state.d
+		break
 	case 0x63: // MOV  H,E
+		state.h = state.e
+		break
 	case 0x64: // MOV  H,H
+		state.h = state.h
+		break
 	case 0x65: // MOV  H,L
+		state.h = state.l
+		break
 	case 0x66: // MOV  H,M
+		state.h = rb(state, state.getHL())
+		break
 	case 0x67: // MOV  H,A
+		state.h = state.a
+		break
 	case 0x68: // MOV  L,B
+		state.l = state.b
+		break
 	case 0x69: // MOV  L,C
+		state.l = state.c
+		break
 	case 0x6a: // MOV  L,D
+		state.l = state.d
+		break
 	case 0x6b: // MOV  L,E
+		state.l = state.e
+		break
 	case 0x6c: // MOV  L,H
+		state.l = state.h
+		break
 	case 0x6d: // MOV  L,L
+		state.l = state.l
+		break
 	case 0x6e: // MOV  L,M
+		state.l = rb(state, state.getHL())
+		break
 	case 0x6f: // MOV  L,A
+		state.l = state.a
+		break
 	case 0x70: // MOV  M,B
+		wb(state, state.getHL(), state.b)
+		break
 	case 0x71: // MOV  M,C
+		wb(state, state.getHL(), state.c)
+		break
 	case 0x72: // MOV  M,D
+		wb(state, state.getHL(), state.d)
+		break
 	case 0x73: // MOV  M,E
+		wb(state, state.getHL(), state.e)
+		break
 	case 0x74: // MOV  M,H
+		wb(state, state.getHL(), state.h)
+		break
 	case 0x75: // MOV  M,L
+		wb(state, state.getHL(), state.l)
+		break
 	case 0x77: // MOV  M,A
+		wb(state, state.getHL(), state.a)
+		break
 	case 0x78: // MOV  A,B
+		state.a = state.b
+		break
 	case 0x79: // MOV  A,C
+		state.a = state.c
+		break
 	case 0x7a: // MOV  A,D
+		state.a = state.d
+		break
 	case 0x7b: // MOV  A,E
+		state.a = state.e
+		break
 	case 0x7c: // MOV  A,H
+		state.a = state.h
+		break
 	case 0x7d: // MOV  A,L
+		state.a = state.l
+		break
 	case 0x7e: // MOV  A,M
+		state.a = rb(state, state.getHL())
+		break
 	case 0x7f: // MOV  A,A
+		state.a = state.a
+		break
 
 	// HLT
 	case 0x76: // HLT
+		state.pc--
+		break
 
 	// ADD
 	case 0x80: // ADD  B
+		add(state, state.b, 0)
+		break
 	case 0x81: // ADD  C
+		add(state, state.c, 0)
+		break
 	case 0x82: // ADD  D
+		add(state, state.d, 0)
+		break
 	case 0x83: // ADD  E
+		add(state, state.e, 0)
+		break
 	case 0x84: // ADD  H
+		add(state, state.h, 0)
+		break
 	case 0x85: // ADD  L
+		add(state, state.l, 0)
+		break
 	case 0x86: // ADD  M
+		add(state, rb(state, state.getHL()), 0)
+		break
 	case 0x87: // ADD  A
+		add(state, state.a, 0)
+		break
 
 	// ADC
 	case 0x88: // ADC  B
+		add(state, state.b, 1)
+		break
 	case 0x89: // ADC  C
+		add(state, state.c, 1)
+		break
 	case 0x8a: // ADC  D
+		add(state, state.d, 1)
+		break
 	case 0x8b: // ADC  E
+		add(state, state.e, 1)
+		break
 	case 0x8c: // ADC  H
+		add(state, state.h, 1)
+		break
 	case 0x8d: // ADC  L
+		add(state, state.l, 1)
+		break
 	case 0x8e: // ADC  M
+		add(state, rb(state, state.getHL()), 1)
+		break
 	case 0x8f: // ADC  A
+		add(state, state.a, 1)
+		break
 
 	// SUB
 	case 0x90: // SUB  B
+		sub(state, state.b, 0)
 	case 0x91: // SUB  C
+		sub(state, state.c, 0)
 	case 0x92: // SUB  D
+		sub(state, state.d, 0)
 	case 0x93: // SUB  E
+		sub(state, state.e, 0)
 	case 0x94: // SUB  H
+		sub(state, state.h, 0)
 	case 0x95: // SUB  L
+		sub(state, state.l, 0)
 	case 0x96: // SUB  M
+		sub(state, rb(state, state.getHL()), 0)
 	case 0x97: // SUB  A
+		sub(state, state.a, 0)
 
 	// SBB
 	case 0x98: // SBB  B
@@ -631,9 +806,9 @@ func ldax(state *State8080, addr uint16) uint8 {
 
 // region Register/Memory to Accumulator Instructions
 
-// Add reg/mem to Accumulator
-func add(state *State8080, toAdd uint8) {
-	answer := uint16(state.a) + uint16(toAdd)
+// Add reg/mem to Accumulator with optional carry
+func add(state *State8080, toAdd uint8, cy uint8) {
+	answer := uint16(state.a) + uint16(toAdd) + uint16(cy)
 	state.cc.z = b2i8((answer & 0xff) == 0)
 	state.cc.s = b2i8((answer & 0x80) != 0)
 	state.cc.cy = b2i8(answer > 0xff)
@@ -641,14 +816,10 @@ func add(state *State8080, toAdd uint8) {
 	state.a = uint8(answer & 0xff)
 }
 
-// Add reg/mem to Accumulator w/carry
-func adc() {}
-
-// Sub reg/mem from Accumulator
-func sub() {}
-
-// Sub reg/mem from Accumulator w/carry
-func sbb() {}
+// Sub reg/mem from Accumulator with optional carry
+func sub(state *State8080, toSub uint8, cy uint8) {
+	var res uint16 = uint16(state.a) - uint16(toSub) -
+}
 
 // Logical & reg/mem with Accumulator
 func ana() {}
